@@ -1,15 +1,58 @@
 import User from "../models/User.js";
 import BlogPost from "../models/BlogPost.js";
+import { BSON, ObjectId } from "bson";
+
+export const post = async (req, res) => {
+  const { postId } = req.body;
+
+  const post = await BlogPost.findById(postId)
+    .populate({
+      path: "comments",
+      populate: {
+        path: "author",
+      },
+    })
+    .populate("author");
+  return res.status(201).json(post);
+};
+
+export const posts = async (req, res) => {
+  const { filter } = req.body;
+  let blogPosts;
+  if (!filter) {
+    blogPosts = await BlogPost.find()
+      .populate({
+        path: "comments",
+        populate: {
+          path: "author",
+        },
+      })
+      .populate("author");
+  }
+
+  blogPosts = await BlogPost.find({
+    categories: filter,
+  })
+    .populate({
+      path: "comments",
+      populate: {
+        path: "author",
+      },
+    })
+    .populate("author");
+
+  return res.status(201).json(blogPosts);
+};
 
 export const createPost = async (req, res) => {
   const title = req.body.title;
   const content = req.body.content;
   const categories = req.body.categories;
-  const username = req.body.username;
+  const userId = req.body.userId;
 
-  const user = await User.find({ username }).exec();
+  const user = await User.findById(userId);
   console.log("user: ", user);
-  if (user.length === 0) {
+  if (!user) {
     return res.status(406).json({
       message: "User not found",
     });
@@ -26,13 +69,15 @@ export const createPost = async (req, res) => {
     content,
     categories,
     createdAt: new Date(),
-    author: user[0]._id,
+    author: user._id,
   });
 
+  user.blogPosts.push(newPost);
   let result;
 
   try {
     result = await newPost.save();
+    await user.save();
   } catch (error) {
     console.log(error);
   }
@@ -100,8 +145,16 @@ export const deletePost = async (req, res) => {
     });
   }
 
+  let blogPosts = [...user.blogPosts];
+  const pid = new BSON.ObjectId(postId);
+
+  blogPosts = blogPosts.filter((id) => !id.equals(pid));
+
+  user.blogPosts = blogPosts;
+
   try {
     await BlogPost.findByIdAndDelete(postId);
+    await user.save();
   } catch (error) {
     return res.status(406).json({
       message: "Deletion failed",

@@ -32,10 +32,12 @@ export const createComment = async (req, res) => {
     author: user._id,
   });
 
+  post.comments.push(newComment);
   let result;
 
   try {
     result = await newComment.save();
+    await post.save();
   } catch (error) {
     console.log(error);
   }

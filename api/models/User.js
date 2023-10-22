@@ -15,6 +15,12 @@ const user = new mongoose.Schema({
     type: String,
     required: true,
   },
+  blogPosts: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BlogPost",
+    },
+  ],
   // https://mongoosejs.com/docs/tutorials/dates.html
   registrationDate: {
     type: Date,
