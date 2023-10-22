@@ -4,6 +4,8 @@ import os from "os";
 import mongoose from "mongoose";
 import userRouter from "./routes/user.js";
 import cors from "cors";
+import blogPostRouter from "./routes/blogPost.js";
+import commentRouter from "./routes/comment.js";
 
 const main = async () => {
   // initializing the express server
@@ -36,6 +38,8 @@ const main = async () => {
 
   app.use("/", mainRouter);
   app.use("/user", userRouter);
+  app.use("/post", blogPostRouter);
+  app.use("/comment", commentRouter);
 
   app.listen(parseInt(5000), () => {
     console.log(`blogging-platform API running at ${os.hostname} at port 5000`);
