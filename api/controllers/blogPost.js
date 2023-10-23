@@ -20,7 +20,7 @@ export const posts = async (req, res) => {
   const { filter } = req.body;
   let blogPosts;
   if (!filter) {
-    blogPosts = await BlogPost.find()
+    blogPosts = await BlogPost.find({})
       .populate({
         path: "comments",
         populate: {
@@ -28,6 +28,7 @@ export const posts = async (req, res) => {
         },
       })
       .populate("author");
+    return res.status(201).json(blogPosts);
   }
 
   blogPosts = await BlogPost.find({

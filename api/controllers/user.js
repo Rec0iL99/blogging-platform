@@ -16,6 +16,7 @@ export const register = async (req, res) => {
   try {
     result = await newUser.save();
   } catch (error) {
+    console.log(error);
     if (error.code === 11000) {
       return res.status(406).json({
         message: "User already exists",
@@ -30,7 +31,7 @@ export const login = async (req, res) => {
   const { password, email } = req.body;
   const user = await User.find({ email }).exec();
 
-  if (!user) {
+  if (user.length == 0) {
     return res.status(406).json({
       message: `User with email ${email} not found. Please register`,
     });
@@ -45,5 +46,6 @@ export const login = async (req, res) => {
 
   return res.status(201).json({
     message: "Login successful",
+    user: user[0],
   });
 };
